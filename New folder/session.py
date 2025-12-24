@@ -34,14 +34,18 @@ class SessionManager:
     
     def get_current_user(self) -> Optional[str]:
         """Get the username of the current session."""
-        if self.current_token and self.current_token in self.sessions:
-            return self.sessions[self.current_token]["username"]
-        return None
+        session_data = self._get_current_session()
+        return session_data["username"] if session_data else None
     
     def get_current_role(self) -> Optional[str]:
         """Get the role of the current session."""
+        session_data = self._get_current_session()
+        return session_data["role"] if session_data else None
+    
+    def _get_current_session(self) -> Optional[Dict]:
+        """Get the current session data if it exists."""
         if self.current_token and self.current_token in self.sessions:
-            return self.sessions[self.current_token]["role"]
+            return self.sessions[self.current_token]
         return None
     
     def is_authenticated(self) -> bool:
@@ -54,8 +58,9 @@ class SessionManager:
     
     def update_activity(self):
         """Update the last activity time for the current session."""
-        if self.current_token and self.current_token in self.sessions:
-            self.sessions[self.current_token]["last_activity"] = datetime.now().isoformat()
+        session_data = self._get_current_session()
+        if session_data:
+            session_data["last_activity"] = datetime.now().isoformat()
     
     def end_session(self):
         """End the current session."""
@@ -66,7 +71,6 @@ class SessionManager:
     
     def get_session_info(self) -> Optional[Dict]:
         """Get information about the current session."""
-        if self.current_token and self.current_token in self.sessions:
-            return self.sessions[self.current_token].copy()
-        return None
+        session_data = self._get_current_session()
+        return session_data.copy() if session_data else None
 

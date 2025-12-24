@@ -2,7 +2,7 @@
 Command Dispatcher
 Parses and dispatches commands to appropriate handlers.
 """
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Callable
 from session import SessionManager
 from auth import AuthModule
 from admin import AdminTools
@@ -40,70 +40,67 @@ class CommandDispatcher:
         return command, args
     
     def execute_command(self, command: str, args: List[str]) -> Tuple[bool, str]:
-        """
-        Execute a command.
-        
-        Returns:
-            (success: bool, message: str)
-        """
+        """Execute a command. Returns (success: bool, message: str)."""
         if not self.session.is_authenticated():
             return False, "You must be logged in to execute commands."
         
         username = self.session.get_current_user()
         self.session.update_activity()
         
-        # Normalize command (handle voice commands)
+        # Normalize and map command
+        command = self._normalize_command(command)
+        
+        # Route to appropriate handler
+        return self._route_command(command, args, username)
+    
+    def _normalize_command(self, command: str) -> str:
+        """Normalize command name (handle voice commands and case)."""
         command = command.lower().strip()
         
-        # Handle multi-word commands from voice
-        if command == "add user":
-            command = "add_user"
-        elif command == "remove user":
-            command = "remove_user"
-        elif command == "view logs":
-            command = "view_logs"
-        elif command == "change password":
-            command = "change_password"
-        elif command == "export logs":
-            command = "export_logs"
+        # Map multi-word voice commands to single-word commands
+        voice_command_map = {
+            "add user": "add_user",
+            "remove user": "remove_user",
+            "view logs": "view_logs",
+            "change password": "change_password",
+            "export logs": "export_logs",
+            "exit voice mode": "exit voice mode"  # Keep as is for special handling
+        }
         
-        # Dispatch commands
+        return voice_command_map.get(command, command)
+    
+    def _route_command(self, command: str, args: List[str], username: str) -> Tuple[bool, str]:
+        """Route command to appropriate handler."""
+        # Special command: exit voice mode (handled in main loop, not here)
+        if command == "exit voice mode":
+            return False, "This command should be handled by the main loop"
+        
+        # General commands (available to all users)
         if command == "help":
             return True, self._get_help_menu()
-        
         elif command == "status":
             return self._handle_status(username)
-        
         elif command == "logout":
             return self._handle_logout(username)
-        
         elif command == "change_password":
             return self._handle_change_password(username, args)
         
-        # Admin commands
-        elif command == "add_user":
+        # Admin-only commands
+        admin_commands: Dict[str, Callable] = {
+            "add_user": self._handle_add_user,
+            "remove_user": self._handle_remove_user,
+            "view_logs": self._handle_view_logs,
+            "export_logs": self._handle_export_logs
+        }
+        
+        if command in admin_commands:
             if not self.session.is_admin():
                 return False, "Permission denied: Admin access required."
-            return self._handle_add_user(username, args)
+            return admin_commands[command](username, args)
         
-        elif command == "remove_user":
-            if not self.session.is_admin():
-                return False, "Permission denied: Admin access required."
-            return self._handle_remove_user(username, args)
-        
-        elif command == "view_logs":
-            if not self.session.is_admin():
-                return False, "Permission denied: Admin access required."
-            return self._handle_view_logs(username, args)
-        
-        elif command == "export_logs":
-            if not self.session.is_admin():
-                return False, "Permission denied: Admin access required."
-            return self._handle_export_logs(username)
-        
-        else:
-            self.logger.log_command(username, command, False)
-            return False, f"Unknown command: {command}. Type 'help' for available commands."
+        # Unknown command
+        self.logger.log_command(username, command, False)
+        return False, f"Unknown command: {command}. Type 'help' for available commands."
     
     def _get_help_menu(self) -> str:
         """Generate help menu based on user role."""
@@ -112,18 +109,21 @@ class CommandDispatcher:
         menu += "  status          - Show current session information\n"
         menu += "  logout          - Log out of the system\n"
         menu += "  help            - Show this help menu\n"
-        menu += "  change_password - Change your password\n"
+        menu += "  change password - Change your password\n"
         
         if self.session.is_admin():
             menu += "\nAdmin Commands:\n"
-            menu += "  add_user <username> <password> [role]  - Add a new user\n"
-            menu += "  remove_user <username>                 - Remove a user\n"
-            menu += "  view_logs [lines]                      - View system logs\n"
-            menu += "  export_logs                           - Export logs to CSV\n"
+            menu += "  add user <username> <password> [role]  - Add a new user\n"
+            menu += "  remove user <username>                 - Remove a user\n"
+            menu += "  view logs [lines]                      - View system logs\n"
+            menu += "  export logs                           - Export logs to CSV\n"
         
         menu += "\nVoice Commands:\n"
-        menu += "  All typed commands can also be issued via voice\n"
-        menu += "  Use 'voice' command to enter voice-only mode\n"
+        menu += "  Type 'voice' to enter voice command mode\n"
+        menu += "  Available voice commands: status, logout, help, change password\n"
+        if self.session.is_admin():
+            menu += "  Admin voice commands: add user, remove user, view logs, export logs\n"
+        menu += "  Note: Voice recognition requires internet connection\n"
         menu += "\n"
         
         return menu
@@ -149,21 +149,16 @@ class CommandDispatcher:
     
     def _handle_change_password(self, username: str, args: List[str]) -> Tuple[bool, str]:
         """Handle change password command."""
+        # Prompt for passwords if not provided (e.g., from voice command)
         if len(args) < 2:
-            # If called via voice or without args, prompt for them
             if len(args) == 0:
-                try:
-                    import getpass
-                    old_password = getpass.getpass("Enter current password: ")
-                    new_password = getpass.getpass("Enter new password: ")
-                    args = [old_password, new_password]
-                except (EOFError, KeyboardInterrupt):
+                args = self._prompt_for_passwords()
+                if args is None:
                     return False, "Command cancelled"
             else:
-                return False, "Usage: change_password <old_password> <new_password>"
+                return False, "Usage: change password <old_password> <new_password>"
         
-        old_password = args[0]
-        new_password = args[1]
+        old_password, new_password = args[0], args[1]
         
         if len(new_password) < 4:
             return False, "New password must be at least 4 characters"
@@ -172,22 +167,26 @@ class CommandDispatcher:
         self.logger.log_command(username, "change_password", success)
         return success, message
     
+    def _prompt_for_passwords(self) -> Optional[List[str]]:
+        """Prompt user for old and new passwords."""
+        try:
+            import getpass
+            old_password = getpass.getpass("Enter current password: ")
+            new_password = getpass.getpass("Enter new password: ")
+            return [old_password, new_password]
+        except (EOFError, KeyboardInterrupt):
+            return None
+    
     def _handle_add_user(self, username: str, args: List[str]) -> Tuple[bool, str]:
-        """Handle add_user command."""
+        """Handle add user command."""
+        # Prompt for user details if not provided
         if len(args) < 2:
-            # If called via voice or without args, prompt for them
             if len(args) == 0:
-                try:
-                    new_username = input("Enter username: ").strip()
-                    import getpass
-                    new_password = getpass.getpass("Enter password: ")
-                    role_input = input("Enter role (user/admin, default: user): ").strip()
-                    role = role_input if role_input in ["admin", "user"] else "user"
-                    args = [new_username, new_password, role]
-                except (EOFError, KeyboardInterrupt):
+                args = self._prompt_for_new_user()
+                if args is None:
                     return False, "Command cancelled"
             else:
-                return False, "Usage: add_user <username> <password> [role]"
+                return False, "Usage: add user <username> <password> [role]"
         
         new_username = args[0]
         new_password = args[1]
@@ -196,10 +195,22 @@ class CommandDispatcher:
         success, message = self.admin.add_user(new_username, new_password, role, username)
         return success, message
     
+    def _prompt_for_new_user(self) -> Optional[List[str]]:
+        """Prompt user for new user details."""
+        try:
+            new_username = input("Enter username: ").strip()
+            import getpass
+            new_password = getpass.getpass("Enter password: ")
+            role_input = input("Enter role (user/admin, default: user): ").strip()
+            role = role_input if role_input in ["admin", "user"] else "user"
+            return [new_username, new_password, role]
+        except (EOFError, KeyboardInterrupt):
+            return None
+    
     def _handle_remove_user(self, username: str, args: List[str]) -> Tuple[bool, str]:
-        """Handle remove_user command."""
+        """Handle remove user command."""
         if len(args) < 1:
-            return False, "Usage: remove_user <username>"
+            return False, "Usage: remove user <username>"
         
         target_username = args[0]
         
@@ -213,19 +224,19 @@ class CommandDispatcher:
         return success, message
     
     def _handle_view_logs(self, username: str, args: List[str]) -> Tuple[bool, str]:
-        """Handle view_logs command."""
+        """Handle view logs command."""
         lines = None
         if args:
             try:
                 lines = int(args[0])
             except ValueError:
-                return False, "Invalid number of lines. Usage: view_logs [lines]"
+                return False, "Invalid number of lines. Usage: view logs [lines]"
         
         logs = self.admin.view_logs(lines, username)
         return True, logs
     
     def _handle_export_logs(self, username: str) -> Tuple[bool, str]:
-        """Handle export_logs command."""
+        """Handle export logs command."""
         success, message = self.admin.export_logs(username)
         return success, message
 

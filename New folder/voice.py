@@ -12,13 +12,14 @@ class VoiceIntegration:
     # Command mappings: spoken words -> command
     COMMAND_MAP = {
         "status": ["status", "state", "info", "information"],
-        "logout": ["logout", "log out", "exit", "quit", "sign out"],
+        "logout": ["logout", "log out", "quit", "sign out"],
         "help": ["help", "commands", "menu"],
         "add user": ["add user", "create user", "new user"],
         "remove user": ["remove user", "delete user"],
         "view logs": ["view logs", "show logs", "logs", "log"],
         "change password": ["change password", "update password", "modify password"],
-        "export logs": ["export logs", "export", "save logs"]
+        "export logs": ["export logs", "export", "save logs"],
+        "exit voice mode": ["exit voice mode", "exit voice", "leave voice mode", "stop voice", "back to text"]
     }
     
     def __init__(self):
@@ -33,9 +34,10 @@ class VoiceIntegration:
             print("Calibrating microphone for ambient noise...")
             with self.microphone as source:
                 self.recognizer.adjust_for_ambient_noise(source, duration=1)
-            print("Microphone calibrated.")
+            print("Microphone calibrated successfully.")
         except Exception as e:
             print(f"Warning: Could not calibrate microphone: {e}")
+            print("Voice recognition may still work, but accuracy might be reduced.")
     
     def listen_for_command(self, timeout: int = 5) -> Optional[str]:
         """
@@ -49,50 +51,57 @@ class VoiceIntegration:
         """
         try:
             with self.microphone as source:
-                print("Listening for voice command...")
+                print("Listening for voice command... (speak now)")
                 audio = self.recognizer.listen(source, timeout=timeout, phrase_time_limit=5)
             
             try:
                 # Use Google Speech Recognition
                 text = self.recognizer.recognize_google(audio).lower()
-                print(f"Recognized: {text}")
-                return self._map_to_command(text)
+                print(f"Recognized text: '{text}'")
+                command = self._map_to_command(text)
+                if command:
+                    print(f"Mapped to command: '{command}'")
+                return command
             except sr.UnknownValueError:
-                print("Could not understand audio")
+                print("Could not understand audio. Please speak more clearly.")
                 return None
             except sr.RequestError as e:
-                print(f"Could not request results from speech recognition service: {e}")
+                print(f"Error: Could not request results from speech recognition service.")
+                print(f"Details: {e}")
+                print("Make sure you have an internet connection for Google Speech Recognition.")
                 return None
         except sr.WaitTimeoutError:
-            print("No voice input detected")
+            print("No voice input detected within timeout period.")
             return None
         except Exception as e:
             print(f"Error in voice recognition: {e}")
+            print(f"Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def _map_to_command(self, spoken_text: str) -> Optional[str]:
-        """
-        Map spoken text to a command.
-        
-        Args:
-            spoken_text: The recognized speech text
-        
-        Returns:
-            command string or None
-        """
+        """Map spoken text to a command. Returns command string or None."""
         spoken_text = spoken_text.lower().strip()
         
-        # Direct match
-        for command, keywords in self.COMMAND_MAP.items():
+        # Try exact match first (most reliable)
+        if spoken_text in self.COMMAND_MAP:
+            return spoken_text
+        
+        # Try direct command match (command name is substring of spoken text)
+        for command in self.COMMAND_MAP.keys():
             if command in spoken_text:
                 return command
         
-        # Keyword matching
+        # Try keyword matching (any keyword is substring of spoken text)
         for command, keywords in self.COMMAND_MAP.items():
             for keyword in keywords:
                 if keyword in spoken_text:
                     return command
         
+        # Debug: show what was recognized but not matched
+        print(f"Warning: Could not map '{spoken_text}' to any command")
+        print(f"Available commands: {', '.join(self.COMMAND_MAP.keys())}")
         return None
     
     def get_available_commands(self) -> List[str]:
@@ -102,8 +111,14 @@ class VoiceIntegration:
     def is_voice_available(self) -> bool:
         """Check if voice recognition is available."""
         try:
+            # Test if microphone is accessible
             with self.microphone as source:
+                # Test if recognizer is ready
+                if self.recognizer is None:
+                    return False
                 return True
-        except:
+        except Exception as e:
+            print(f"Voice recognition not available: {e}")
+            print("Make sure your microphone is connected and not being used by another application.")
             return False
 

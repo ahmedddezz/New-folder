@@ -76,58 +76,67 @@ class Logger:
             return "No logs found."
     
     def export_to_csv(self) -> tuple[bool, str]:
-        """
-        Export logs to CSV format.
-        
-        Returns:
-            (success: bool, message: str)
-        """
+        """Export logs to CSV format. Returns (success: bool, message: str)."""
         try:
-            with open(self.log_file, 'r') as f:
-                log_lines = f.readlines()
-            
-            # Parse log entries
-            csv_data = []
-            csv_data.append(["Timestamp", "Level", "Username", "Message"])
-            
-            for line in log_lines:
-                line = line.strip()
-                if not line or line.startswith("==="):
-                    continue
-                
-                # Parse log format: [timestamp] [LEVEL] [username] message
-                try:
-                    if line.startswith("["):
-                        # Extract timestamp
-                        end_timestamp = line.find("]", 1)
-                        timestamp = line[1:end_timestamp]
-                        
-                        # Extract level
-                        start_level = line.find("[", end_timestamp + 1)
-                        end_level = line.find("]", start_level + 1)
-                        level = line[start_level + 1:end_level]
-                        
-                        # Extract username (optional)
-                        remaining = line[end_level + 1:].strip()
-                        username = None
-                        message = remaining
-                        
-                        if remaining.startswith("["):
-                            end_username = remaining.find("]", 1)
-                            username = remaining[1:end_username]
-                            message = remaining[end_username + 1:].strip()
-                        
-                        csv_data.append([timestamp, level, username or "", message])
-                except Exception:
-                    # Skip malformed lines
-                    continue
-            
-            # Write to CSV
-            with open(self.csv_log_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerows(csv_data)
-            
+            log_lines = self._read_log_lines()
+            csv_data = self._parse_logs_to_csv(log_lines)
+            self._write_csv_file(csv_data)
             return True, f"Logs exported to {self.csv_log_file}"
         except Exception as e:
             return False, f"Failed to export logs: {str(e)}"
+    
+    def _read_log_lines(self) -> list:
+        """Read all lines from the log file."""
+        with open(self.log_file, 'r') as f:
+            return f.readlines()
+    
+    def _parse_logs_to_csv(self, log_lines: list) -> list:
+        """Parse log lines into CSV format."""
+        csv_data = [["Timestamp", "Level", "Username", "Message"]]
+        
+        for line in log_lines:
+            line = line.strip()
+            if not line or line.startswith("==="):
+                continue
+            
+            parsed_entry = self._parse_log_line(line)
+            if parsed_entry:
+                csv_data.append(parsed_entry)
+        
+        return csv_data
+    
+    def _parse_log_line(self, line: str) -> Optional[list]:
+        """Parse a single log line. Returns [timestamp, level, username, message] or None."""
+        if not line.startswith("["):
+            return None
+        
+        try:
+            # Extract timestamp: [timestamp]
+            end_timestamp = line.find("]", 1)
+            timestamp = line[1:end_timestamp]
+            
+            # Extract level: [LEVEL]
+            start_level = line.find("[", end_timestamp + 1)
+            end_level = line.find("]", start_level + 1)
+            level = line[start_level + 1:end_level]
+            
+            # Extract username (optional) and message
+            remaining = line[end_level + 1:].strip()
+            username = ""
+            message = remaining
+            
+            if remaining.startswith("["):
+                end_username = remaining.find("]", 1)
+                username = remaining[1:end_username]
+                message = remaining[end_username + 1:].strip()
+            
+            return [timestamp, level, username, message]
+        except Exception:
+            return None
+    
+    def _write_csv_file(self, csv_data: list):
+        """Write CSV data to file."""
+        with open(self.csv_log_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(csv_data)
 

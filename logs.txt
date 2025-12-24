@@ -1,0 +1,8 @@
+=== System Logs ===
+[2025-12-23 03:35:30] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-23 03:35:42] [COMMAND] [admin] Command 'status' executed - SUCCESS
+[2025-12-23 03:35:54] [COMMAND] [admin] Command 'view' executed - FAILED
+[2025-12-23 03:36:02] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-23 03:36:16] [COMMAND] [admin] Command 'export_logs' executed - SUCCESS
+[2025-12-23 03:36:16] [ADMIN] [admin] Admin action: export_logs
+[2025-12-23 03:36:38] [COMMAND] [admin] Command 'logout' executed - SUCCESS

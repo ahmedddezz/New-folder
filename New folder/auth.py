@@ -51,14 +51,10 @@ class AuthModule:
             json.dump(users, f, indent=2)
     
     def authenticate(self, username: str, password: str) -> tuple[bool, str]:
-        """
-        Authenticate a user.
-        
-        Returns:
-            (success: bool, message: str)
-        """
+        """Authenticate a user. Returns (success: bool, message: str)."""
         users = self._load_users()
         
+        # Check if user exists
         if username not in users:
             return False, "Invalid username or password"
         
@@ -78,19 +74,25 @@ class AuthModule:
         # Verify password
         password_hash = self._hash_password(password)
         if user["password_hash"] != password_hash:
-            # Increment failed attempts
-            self.lockout_state[username] = failed_attempts + 1
-            remaining = self.MAX_FAILED_ATTEMPTS - (failed_attempts + 1)
-            if remaining > 0:
-                return False, f"Invalid password. {remaining} attempt(s) remaining."
-            else:
-                user["locked"] = True
-                self._save_users(users)
-                return False, "Account locked due to too many failed login attempts."
+            return self._handle_failed_login(username, users, failed_attempts)
         
         # Successful login - reset failed attempts
         self.lockout_state[username] = 0
         return True, "Login successful"
+    
+    def _handle_failed_login(self, username: str, users: dict, failed_attempts: int) -> tuple[bool, str]:
+        """Handle a failed login attempt."""
+        failed_attempts += 1
+        self.lockout_state[username] = failed_attempts
+        remaining = self.MAX_FAILED_ATTEMPTS - failed_attempts
+        
+        if remaining > 0:
+            return False, f"Invalid password. {remaining} attempt(s) remaining."
+        
+        # Account locked
+        users[username]["locked"] = True
+        self._save_users(users)
+        return False, "Account locked due to too many failed login attempts."
     
     def get_user_role(self, username: str) -> Optional[str]:
         """Get the role of a user."""

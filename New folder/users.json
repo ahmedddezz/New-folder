@@ -3,5 +3,15 @@
     "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
     "role": "admin",
     "locked": false
+  },
+  "ahmed": {
+    "password_hash": "c5716b88f7e6d3aa4c0f0d1d170604776f9d36481ba3d99c784ef539e6166110",
+    "role": "admin",
+    "locked": false
+  },
+  "islam": {
+    "password_hash": "69f4a914728cff7404de11ba41433f2641a8c5ccc4dc243301a7c1009355e2c0",
+    "role": "admin",
+    "locked": false
   }
 }

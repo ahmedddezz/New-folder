@@ -24,12 +24,7 @@ class AccessControlSystem:
         self.voice = VoiceIntegration()
     
     def login(self) -> bool:
-        """
-        Handle user login.
-        
-        Returns:
-            True if login successful, False otherwise
-        """
+        """Handle user login. Returns True if successful."""
         print("\n=== Login ===")
         username = input("Username: ").strip()
         password = getpass.getpass("Password: ")
@@ -41,15 +36,16 @@ class AccessControlSystem:
         success, message = self.auth.authenticate(username, password)
         self.logger.log_login_attempt(username, success)
         
-        if success:
-            role = self.auth.get_user_role(username)
-            token = self.session.create_session(username, role)
-            print(f"\n{message}")
-            print(f"Welcome, {username}! (Role: {role})")
-            return True
-        else:
+        if not success:
             print(f"\n{message}")
             return False
+        
+        # Login successful - create session
+        role = self.auth.get_user_role(username)
+        self.session.create_session(username, role)
+        print(f"\n{message}")
+        print(f"Welcome, {username}! (Role: {role})")
+        return True
     
     def run(self):
         """Main application loop."""
@@ -66,56 +62,45 @@ class AccessControlSystem:
                     return
         
         # Main command loop
-        print("\nType 'help' for available commands.")
-        print("Type 'voice' to enter voice command mode.")
-        print("Type 'logout' to exit.\n")
-        
+        self._show_welcome_message()
         voice_mode = False
         
         while self.session.is_authenticated():
             try:
-                if voice_mode:
-                    command = self.voice.listen_for_command()
-                    if command is None:
-                        print("No command recognized. Switching to text mode.")
-                        voice_mode = False
+                command, args = self._get_user_command(voice_mode)
+                
+                if command is None:
+                    # In voice mode, continue asking for commands
+                    # In text mode, just continue the loop
+                    if not voice_mode:
                         continue
-                    print(f"Executing voice command: {command}")
-                    # For voice commands, check if additional args are needed
-                    args = []
-                    # Commands that need arguments will prompt for them in their handlers
-                else:
-                    user_input = input(f"{self.session.get_current_user()}> ").strip()
-                    
-                    if not user_input:
-                        continue
-                    
-                    # Check for voice mode
-                    if user_input.lower() == "voice":
-                        if self.voice.is_voice_available():
-                            voice_mode = True
-                            print("Voice mode activated. Speak your commands.")
-                            continue
-                        else:
-                            print("Voice recognition not available.")
-                            continue
-                    
-                    command, args = self.dispatcher.parse_command(user_input)
+                    # If in voice mode and command is None, ask again
+                    continue
+                
+                # Handle voice mode activation
+                if command == "VOICE_MODE":
+                    voice_mode = True
+                    continue
+                
+                # Handle exit voice mode command
+                if command == "exit voice mode":
+                    voice_mode = False
+                    print("\nExited voice mode. Returning to text mode.\n")
+                    continue
                 
                 # Execute command
                 success, message = self.dispatcher.execute_command(command, args)
                 
-                # Check if logout was successful
-                if success and message == "Logged out successfully":
+                # Handle logout
+                if self._is_logout_command(success, message):
                     print(f"\n{message}")
                     break
                 
                 print(f"\n{message}\n")
                 
-                # Exit voice mode after command
+                # In voice mode, continue asking for next command
                 if voice_mode:
-                    voice_mode = False
-                    print("Returned to text mode.")
+                    print("Voice mode active. Speak your next command or say 'exit voice mode' to return to text mode.\n")
             
             except KeyboardInterrupt:
                 print("\n\nInterrupted. Type 'logout' to exit or continue with commands.")
@@ -128,6 +113,55 @@ class AccessControlSystem:
                 print(f"An error occurred: {e}")
         
         print("\nSession ended. Goodbye!")
+    
+    def _show_welcome_message(self):
+        """Display welcome message with available commands."""
+        print("\nType 'help' for available commands.")
+        print("Type 'voice' to enter voice command mode.")
+        print("Type 'logout' to exit.\n")
+    
+    def _get_user_command(self, voice_mode: bool) -> tuple:
+        """Get command from user (voice or text). Returns (command, args) or (None, None)."""
+        if voice_mode:
+            return self._handle_voice_command()
+        else:
+            return self._handle_text_command()
+    
+    def _handle_voice_command(self) -> tuple:
+        """Handle voice command input."""
+        command = self.voice.listen_for_command()
+        if command is None:
+            print("No command recognized. Please try again.\n")
+            return None, None
+        print(f"Executing voice command: {command}")
+        return command, []
+    
+    def _handle_text_command(self) -> tuple:
+        """Handle text command input."""
+        user_input = input(f"{self.session.get_current_user()}> ").strip()
+        
+        if not user_input:
+            return None, None
+        
+        # Check for voice mode activation
+        if user_input.lower() == "voice":
+            if self.voice.is_voice_available():
+                print("\n=== Voice Mode Activated ===")
+                print("Speak your commands clearly. Say 'help' to see available commands.")
+                print("Say 'exit voice mode' to return to text mode.")
+                print("The system will listen for 5 seconds after you speak.\n")
+                # Return a special marker to indicate voice mode
+                return "VOICE_MODE", []
+            else:
+                print("Voice recognition not available.")
+                print("Please check your microphone connection and try again.")
+                return None, None
+        
+        return self.dispatcher.parse_command(user_input)
+    
+    def _is_logout_command(self, success: bool, message: str) -> bool:
+        """Check if the command was a successful logout."""
+        return success and message == "Logged out successfully"
 
 
 def main():

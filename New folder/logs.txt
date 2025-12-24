@@ -1,3 +1,27 @@
 === System Logs ===
 [2025-12-22 23:47:09] [LOGIN] [admin] Login attempt FAILED for user: admin
 [2025-12-22 23:47:31] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-23 03:45:57] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-23 03:46:23] [COMMAND] [admin] Command 'logout' executed - SUCCESS
+[2025-12-24 12:20:28] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-24 12:20:48] [ADMIN] [admin] Admin action: add_user on ahmed
+[2025-12-24 12:20:48] [COMMAND] [admin] Command 'add_user ahmed' executed - SUCCESS
+[2025-12-24 12:20:59] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-24 12:21:23] [ERROR] [admin] Error: CommandDispatcher._handle_export_logs() takes 2 positional arguments but 3 were given
+[2025-12-24 12:21:43] [ERROR] [admin] Error: CommandDispatcher._handle_export_logs() takes 2 positional arguments but 3 were given
+[2025-12-24 12:22:21] [COMMAND] [admin] Command 'remove_use' executed - FAILED
+[2025-12-24 12:22:32] [COMMAND] [admin] Command 'status' executed - SUCCESS
+[2025-12-24 12:22:36] [COMMAND] [admin] Command 'log' executed - FAILED
+[2025-12-24 12:22:41] [COMMAND] [admin] Command 'log_out' executed - FAILED
+[2025-12-24 12:23:00] [COMMAND] [admin] Command 'logout' executed - SUCCESS
+[2025-12-24 23:47:21] [LOGIN] [ahmed] Login attempt SUCCESS for user: ahmed
+[2025-12-24 23:48:03] [COMMAND] [ahmed] Command 'exit' executed - FAILED
+[2025-12-24 23:48:06] [COMMAND] [ahmed] Command 'logout' executed - SUCCESS
+[2025-12-24 23:48:34] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-24 23:51:09] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-24 23:52:16] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-24 23:54:25] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-24 23:55:09] [ADMIN] [admin] Admin action: add_user on islam
+[2025-12-24 23:55:09] [COMMAND] [admin] Command 'add_user islam' executed - SUCCESS
+[2025-12-24 23:55:14] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-24 23:55:18] [COMMAND] [admin] Command 'status' executed - SUCCESS
