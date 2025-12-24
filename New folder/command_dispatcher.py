@@ -23,6 +23,7 @@ class CommandDispatcher:
     def parse_command(self, command_input: str) -> Tuple[str, List[str]]:
         """
         Parse a command string into command and arguments.
+        Handles multi-word commands like "view logs" and "add user".
         
         Args:
             command_input: Raw command string
@@ -34,6 +35,29 @@ class CommandDispatcher:
         if not parts:
             return "", []
         
+        # Multi-word commands that need special handling
+        multi_word_commands = [
+            "add user", "remove user", "unlock user", "view logs", "change password", 
+            "export logs", "exit voice mode"
+        ]
+        
+        # Check if first two words form a multi-word command
+        if len(parts) >= 2:
+            two_word_command = f"{parts[0].lower()} {parts[1].lower()}"
+            if two_word_command in multi_word_commands:
+                command = two_word_command
+                args = parts[2:] if len(parts) > 2 else []
+                return command, args
+        
+        # Check if first three words form a multi-word command (for "exit voice mode")
+        if len(parts) >= 3:
+            three_word_command = f"{parts[0].lower()} {parts[1].lower()} {parts[2].lower()}"
+            if three_word_command in multi_word_commands:
+                command = three_word_command
+                args = parts[3:] if len(parts) > 3 else []
+                return command, args
+        
+        # Single-word command
         command = parts[0].lower()
         args = parts[1:] if len(parts) > 1 else []
         
@@ -61,6 +85,7 @@ class CommandDispatcher:
         voice_command_map = {
             "add user": "add_user",
             "remove user": "remove_user",
+            "unlock user": "unlock_user",
             "view logs": "view_logs",
             "change password": "change_password",
             "export logs": "export_logs",
@@ -90,7 +115,8 @@ class CommandDispatcher:
             "add_user": self._handle_add_user,
             "remove_user": self._handle_remove_user,
             "view_logs": self._handle_view_logs,
-            "export_logs": self._handle_export_logs
+            "export_logs": self._handle_export_logs,
+            "unlock_user": self._handle_unlock_user
         }
         
         if command in admin_commands:
@@ -115,6 +141,7 @@ class CommandDispatcher:
             menu += "\nAdmin Commands:\n"
             menu += "  add user <username> <password> [role]  - Add a new user\n"
             menu += "  remove user <username>                 - Remove a user\n"
+            menu += "  unlock user <username>                 - Unlock a locked user account\n"
             menu += "  view logs [lines]                      - View system logs\n"
             menu += "  export logs                           - Export logs to CSV\n"
         
@@ -122,7 +149,7 @@ class CommandDispatcher:
         menu += "  Type 'voice' to enter voice command mode\n"
         menu += "  Available voice commands: status, logout, help, change password\n"
         if self.session.is_admin():
-            menu += "  Admin voice commands: add user, remove user, view logs, export logs\n"
+            menu += "  Admin voice commands: add user, remove user, unlock user, view logs, export logs\n"
         menu += "  Note: Voice recognition requires internet connection\n"
         menu += "\n"
         
@@ -209,8 +236,15 @@ class CommandDispatcher:
     
     def _handle_remove_user(self, username: str, args: List[str]) -> Tuple[bool, str]:
         """Handle remove user command."""
+        # Prompt for username if not provided (e.g., from voice command or when typing just "remove user")
         if len(args) < 1:
-            return False, "Usage: remove user <username>"
+            try:
+                target_username = input("Enter username to remove: ").strip()
+                if not target_username:
+                    return False, "Username cannot be empty"
+                args = [target_username]
+            except (EOFError, KeyboardInterrupt):
+                return False, "Command cancelled"
         
         target_username = args[0]
         
@@ -235,8 +269,18 @@ class CommandDispatcher:
         logs = self.admin.view_logs(lines, username)
         return True, logs
     
-    def _handle_export_logs(self, username: str) -> Tuple[bool, str]:
+    def _handle_export_logs(self, username: str, args: List[str]) -> Tuple[bool, str]:
         """Handle export logs command."""
+        # args not used, but included for consistency with other handlers
         success, message = self.admin.export_logs(username)
+        return success, message
+    
+    def _handle_unlock_user(self, username: str, args: List[str]) -> Tuple[bool, str]:
+        """Handle unlock user command."""
+        if len(args) < 1:
+            return False, "Usage: unlock user <username>"
+        
+        target_username = args[0]
+        success, message = self.admin.unlock_user(target_username, username)
         return success, message
 

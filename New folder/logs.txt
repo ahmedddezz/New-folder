@@ -25,3 +25,69 @@
 [2025-12-24 23:55:09] [COMMAND] [admin] Command 'add_user islam' executed - SUCCESS
 [2025-12-24 23:55:14] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
 [2025-12-24 23:55:18] [COMMAND] [admin] Command 'status' executed - SUCCESS
+[2025-12-25 00:48:23] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 00:48:28] [COMMAND] [admin] Command 'voiced' executed - FAILED
+[2025-12-25 00:49:03] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-25 00:49:12] [COMMAND] [admin] Command 'add' executed - FAILED
+[2025-12-25 00:49:18] [COMMAND] [admin] Command 'elp' executed - FAILED
+[2025-12-25 00:49:26] [COMMAND] [admin] Command 'add' executed - FAILED
+[2025-12-25 00:50:03] [ADMIN] [admin] Admin action: add_user on mabrook
+[2025-12-25 00:50:03] [COMMAND] [admin] Command 'add_user mabrook' executed - SUCCESS
+[2025-12-25 00:50:08] [COMMAND] [admin] Command 'logout' executed - SUCCESS
+[2025-12-25 00:50:23] [LOGIN] [mabrook] Login attempt SUCCESS for user: mabrook
+[2025-12-25 00:50:32] [COMMAND] [mabrook] Command 'view' executed - FAILED
+[2025-12-25 00:50:39] [COMMAND] [mabrook] Command 'view' executed - FAILED
+[2025-12-25 00:50:48] [COMMAND] [mabrook] Command 'view' executed - FAILED
+[2025-12-25 00:51:02] [COMMAND] [mabrook] Command 'view_logs' executed - SUCCESS
+[2025-12-25 00:52:03] [COMMAND] [mabrook] Command 'view_logs' executed - SUCCESS
+[2025-12-25 00:52:09] [COMMAND] [mabrook] Command 'view_logs' executed - SUCCESS
+[2025-12-25 00:54:04] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 00:54:07] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-25 00:54:10] [ERROR] [admin] Error: CommandDispatcher._handle_export_logs() takes 2 positional arguments but 3 were given
+[2025-12-25 00:54:20] [COMMAND] [admin] Command 'status' executed - SUCCESS
+[2025-12-25 00:54:27] [ERROR] [admin] Error: CommandDispatcher._handle_export_logs() takes 2 positional arguments but 3 were given
+[2025-12-25 00:55:49] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 00:55:55] [COMMAND] [admin] Command 'export_logs' executed - SUCCESS
+[2025-12-25 00:55:55] [ADMIN] [admin] Admin action: export_logs
+[2025-12-25 00:57:30] [COMMAND] [admin] Command 'exit' executed - FAILED
+[2025-12-25 00:57:33] [COMMAND] [admin] Command 'log' executed - FAILED
+[2025-12-25 00:57:42] [COMMAND] [admin] Command 'logout' executed - SUCCESS
+[2025-12-25 00:57:56] [LOGIN] [user] Login attempt FAILED for user: user
+[2025-12-25 01:01:48] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 01:09:04] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 01:09:29] [ADMIN] [admin] Admin action: add_user on guest
+[2025-12-25 01:09:29] [COMMAND] [admin] Command 'add_user guest' executed - SUCCESS
+[2025-12-25 01:09:33] [COMMAND] [admin] Command 'logout' executed - SUCCESS
+[2025-12-25 01:09:49] [LOGIN] [guest] Login attempt SUCCESS for user: guest
+[2025-12-25 01:10:05] [COMMAND] [guest] Command 'status' executed - SUCCESS
+[2025-12-25 01:10:41] [COMMAND] [guest] Command 'change_password' executed - FAILED
+[2025-12-25 01:10:45] [COMMAND] [guest] Command 'voice' executed - FAILED
+[2025-12-25 01:10:47] [COMMAND] [guest] Command 'voie' executed - FAILED
+[2025-12-25 01:11:13] [COMMAND] [guest] Command 'change_password' executed - SUCCESS
+[2025-12-25 01:11:26] [COMMAND] [guest] Command 'logout' executed - SUCCESS
+[2025-12-25 01:14:11] [LOGIN] [ahmed] Login attempt SUCCESS for user: ahmed
+[2025-12-25 01:14:15] [COMMAND] [ahmed] Command 'logout' executed - SUCCESS
+[2025-12-25 01:14:31] [LOGIN] [ahmed] Login attempt FAILED for user: ahmed
+[2025-12-25 01:14:38] [LOGIN] [aaa] Login attempt FAILED for user: aaa
+[2025-12-25 01:14:45] [LOGIN] [ahmed] Login attempt FAILED for user: ahmed
+[2025-12-25 01:14:51] [LOGIN] [ahmed] Login attempt FAILED for user: ahmed
+[2025-12-25 01:14:59] [LOGIN] [ahmed] Login attempt FAILED for user: ahmed
+[2025-12-25 01:15:22] [LOGIN] [isalm] Login attempt FAILED for user: isalm
+[2025-12-25 01:15:30] [LOGIN] [mabrook] Login attempt SUCCESS for user: mabrook
+[2025-12-25 01:17:56] [LOGIN] [mabrook] Login attempt SUCCESS for user: mabrook
+[2025-12-25 01:18:34] [ADMIN] [mabrook] Admin action: unlock_user on ahmed
+[2025-12-25 01:18:34] [COMMAND] [mabrook] Command 'unlock_user ahmed' executed - SUCCESS
+[2025-12-25 01:18:40] [COMMAND] [mabrook] Command 'logout' executed - SUCCESS
+[2025-12-25 01:18:50] [LOGIN] [ahmed] Login attempt SUCCESS for user: ahmed
+[2025-12-25 01:18:56] [COMMAND] [ahmed] Command 'logout' executed - SUCCESS
+[2025-12-25 01:24:33] [LOGIN] [guest] Login attempt SUCCESS for user: guest
+[2025-12-25 01:25:39] [COMMAND] [guest] Command 'logout' executed - SUCCESS
+[2025-12-25 01:26:06] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 01:26:17] [COMMAND] [admin] Command 'status' executed - SUCCESS
+[2025-12-25 01:26:41] [COMMAND] [admin] Command 'change_password' executed - SUCCESS
+[2025-12-25 01:26:46] [COMMAND] [admin] Command 'export_logs' executed - SUCCESS
+[2025-12-25 01:26:46] [ADMIN] [admin] Admin action: export_logs
+[2025-12-25 01:28:05] [COMMAND] [admin] Command 'view_logs' executed - SUCCESS
+[2025-12-25 01:30:52] [LOGIN] [admin] Login attempt SUCCESS for user: admin
+[2025-12-25 01:31:23] [ADMIN] [admin] Admin action: remove_user on islam
+[2025-12-25 01:31:23] [COMMAND] [admin] Command 'remove_user islam' executed - SUCCESS

@@ -16,6 +16,7 @@ class VoiceIntegration:
         "help": ["help", "commands", "menu"],
         "add user": ["add user", "create user", "new user"],
         "remove user": ["remove user", "delete user"],
+        "unlock user": ["unlock user", "unlock account", "unlock"],
         "view logs": ["view logs", "show logs", "logs", "log"],
         "change password": ["change password", "update password", "modify password"],
         "export logs": ["export logs", "export", "save logs"],

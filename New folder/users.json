@@ -9,9 +9,14 @@
     "role": "admin",
     "locked": false
   },
-  "islam": {
-    "password_hash": "69f4a914728cff7404de11ba41433f2641a8c5ccc4dc243301a7c1009355e2c0",
+  "mabrook": {
+    "password_hash": "f49d22ba1ca44476ea6f86d793ba72e892b2eea2b0b9f5204b677aff3b0e6c36",
     "role": "admin",
+    "locked": false
+  },
+  "guest": {
+    "password_hash": "6b93ccba414ac1d0ae1e77f3fac560c748a6701ed6946735a49d463351518e16",
+    "role": "user",
     "locked": false
   }
 }
